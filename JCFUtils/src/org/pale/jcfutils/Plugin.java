@@ -1,12 +1,16 @@
 package org.pale.jcfutils;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.pale.jcfutils.Command.CallInfo;
 import org.pale.jcfutils.Command.Cmd;
 import org.pale.jcfutils.Command.Registry;
+import org.pale.jcfutils.listeners.CreatureSpawnListener;
 
 
 
@@ -39,6 +43,7 @@ public class Plugin extends JavaPlugin {
 	public void onDisable() {
 		instance = null;
 		getLogger().info("JCFUtils has been disabled");
+		saveConfig();
 	}
 
 	public Plugin(){
@@ -53,6 +58,13 @@ public class Plugin extends JavaPlugin {
 		saveDefaultConfig();
 		commandRegistry.register(this); // register commands
 		getLogger().info("JCFUtils has been enabled");
+		
+		// load config
+		loadConfigData();
+		
+		// register event listeners
+		PluginManager mgr = Bukkit.getPluginManager();
+		mgr.registerEvents(new CreatureSpawnListener(),this);
 	}
 
 	public static void sendCmdMessage(CommandSender s,String msg){
@@ -69,8 +81,30 @@ public class Plugin extends JavaPlugin {
 		}
 		return false;
 	}
-
-	/**
+	
+	/*
+	 * Configuration
+	 */
+	
+	void loadConfigData(){
+		lightSpawnLevel = getConfig().getInt("lightspawnlevel");
+	}
+	
+	/** return the block light level above which mobs will not naturally spawn */
+	public int getLightSpawnLevel(){
+		return lightSpawnLevel;
+	}
+	private int lightSpawnLevel;
+	
+	
+	
+	/*
+	 * Various data
+	 */
+	public static int spawnsAttempted;
+	public static int spawnsCancelled;
+	
+	/*
 	 * Commands
 	 */
 
@@ -82,4 +116,21 @@ public class Plugin extends JavaPlugin {
 			commandRegistry.showHelp(c,c.getArgs()[0]);
 		}
 	}
+	
+	@Cmd(desc="set block light level above which mobs won't spawn",player=false,argc=1)
+	public void light(CallInfo c){
+		lightSpawnLevel = Integer.parseInt(c.getArgs()[0]);
+		getConfig().set("lightspawnlevel",lightSpawnLevel);
+		saveConfig();
+	}
+
+	@Cmd(desc="show information and config",player=true,argc=0)
+	public void info(CallInfo c){
+		StringBuilder b = new StringBuilder();
+		b.append(ChatColor.AQUA+"JCFUtils info: \n"+ChatColor.GREEN);
+		b.append("LightSpawnLevel: "+lightSpawnLevel+"\n");
+		b.append("number of entities cancelled vs. attempted: "+spawnsCancelled+"/"+spawnsAttempted);
+		c.msg(b.toString());
+	}
+
 }

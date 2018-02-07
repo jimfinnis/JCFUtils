@@ -14,12 +14,15 @@ import org.bukkit.entity.Player;
 import org.pale.jcfutils.Plugin;
 
 public class Registry {
+	static final String mainCommand="jcf";
+
 	class Entry {
 		String name;
 		String permission;
 		Method m;
 		Object obj;
 		private Cmd cmd;
+		
 		
 		
 		Entry(String name,String perm,Cmd cmd,Object o,Method m){
@@ -125,9 +128,9 @@ public class Registry {
 	public void showHelp(CallInfo c, String cmdName) {
 		if(registry.containsKey(cmdName)){
 			Entry e = registry.get(cmdName);
-			c.msg(ChatColor.AQUA+"ccz "+e.name+" "+e.cmd.usage()+":"+ChatColor.GREEN+" "+e.cmd.desc());
+			c.msg(ChatColor.AQUA+mainCommand+" "+e.name+" "+e.cmd.usage()+":"+ChatColor.GREEN+" "+e.cmd.desc());
 		} else {
-			c.msg("No such command. try \"ccz help\" on its own.");
+			c.msg("No such command. try \""+mainCommand+" help\" on its own.");
 		}
 	}
 }
