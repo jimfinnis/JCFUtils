@@ -35,6 +35,44 @@ public class Plugin extends JavaPlugin {
 	private Registry commandRegistry=new Registry();
 
 	/**
+	 * Handy class for visiting blocks within a given range.
+	 * @author white
+	 *
+	 */
+	private abstract class BlockVisitor {
+		// returns number of blocks modified
+		public abstract int visit(World w,int bx,int by,int bz);
+	}
+
+	/**
+	 * Handy method for using the handy class above.
+	 * @param c
+	 * @param distance
+	 * @param v
+	 * @return
+	 */
+	private int visit(CallInfo c,int distance,BlockVisitor v) {
+		Location l = c.getPlayer().getLocation();
+		int x = l.getBlockX();
+		int y = l.getBlockY();
+		int z = l.getBlockZ();
+		World w = c.getPlayer().getWorld();
+		int ct =0;
+		for(int xoffset=-distance;xoffset<=distance;xoffset++) {
+			c.msg("Iteration...");
+			for(int yoffset=-distance/2;yoffset<=distance/2;yoffset++) {
+				for(int zoffset=-distance;zoffset<=distance;zoffset++) {
+					int bx = x+xoffset;
+					int by = y+yoffset;
+					int bz = z+zoffset;
+					ct += v.visit(w,bx,by,bz);
+				}
+			}
+		}
+		return ct;
+	}
+
+	/**
 	 * Use this to get plugin instances - don't play silly buggers creating new
 	 * ones all over the place!
 	 */
@@ -139,55 +177,64 @@ public class Plugin extends JavaPlugin {
 		c.msg(b.toString());
 	}
 
+
+
+	@Cmd(desc="remove vines locally",player=true,argc=1)
+	public void devine(CallInfo c){
+		int distance = Integer.parseInt(c.getArgs()[0]);
+		c.msg("de-vining");
+		int ct=visit(c,distance,new BlockVisitor() {
+			@Override
+			public int visit(World w,int x, int y, int z) {
+				Block b = w.getBlockAt(x,y,z);
+				if(b.getType()==Material.VINE) {
+					b.setType(Material.AIR);
+					return 1;
+				} else {
+					return 0;
+				}
+			}});
+	}
+
 	@Cmd(desc="cover some stone with moss and cracks",player=true,argc=1)
 	public void rot(CallInfo c) {
 		int distance = Integer.parseInt(c.getArgs()[0]);
 		c.msg("Rotting.");
-		Location l = c.getPlayer().getLocation();
-		int x = l.getBlockX();
-		int y = l.getBlockY();
-		int z = l.getBlockZ();
-		World w = c.getPlayer().getWorld();
-		int ct=0;
-		for(int xoffset=-distance;xoffset<=distance;xoffset++) {
-			c.msg("Iteration...");
-			for(int yoffset=-distance/2;yoffset<=distance/2;yoffset++) {
-				for(int zoffset=-distance;zoffset<=distance;zoffset++) {
-					int bx = x+xoffset;
-					int by = y+yoffset;
-					int bz = z+zoffset;
-					Block b = w.getBlockAt(bx,by,bz);
-					if(rand.nextDouble()<0.2) {// 1 in 20
-						StringBuilder ssb = new StringBuilder();
-						switch(b.getType()) {	
-						case SMOOTH_BRICK:
-							if(b.getData() == 0) {
-								if(rand.nextInt(4)==0) {
-									ct+=grow(w,bx,by,bz,Material.SMOOTH_BRICK,1); // mossy
-								} else
-									ct+=grow(w,bx,by,bz,Material.SMOOTH_BRICK,2); // cracked
-							}
-							break;
-						case COBBLESTONE:
-							ct++;
-							if(rand.nextInt(2)==0) // rarer
-								ct+=grow(w,bx,by,bz,Material.MOSSY_COBBLESTONE,0);
-							break;
-						case COBBLE_WALL:
-							if(b.getData()==0 && rand.nextInt(2)==0) // rarer
-								ct+=grow(w,bx,by,bz,Material.COBBLE_WALL,1);
-							break;
-						}
+		int ct=visit(c,distance,new BlockVisitor() {
+			@Override
+			public int visit(World w,int bx, int by, int bz) {
+				int ct=0;
+				Block b = w.getBlockAt(bx,by,bz);
+				if(rand.nextDouble()<0.2) {// 1 in 20
+					switch(b.getType()) {
+					case STONE_BRICKS:
+						if(rand.nextInt(4)==0) {
+							ct+=grow(w,bx,by,bz,Material.MOSSY_STONE_BRICKS); // mossy
+						} else
+							ct+=grow(w,bx,by,bz,Material.CRACKED_STONE_BRICKS); // cracked
+						break;
+					case COBBLESTONE:
+						ct++;
+						if(rand.nextInt(2)==0) // rarer
+							ct+=grow(w,bx,by,bz,Material.MOSSY_COBBLESTONE);
+						break;
+					case COBBLESTONE_WALL:
+						if(rand.nextInt(2)==0) // rarer
+							ct+=grow(w,bx,by,bz,Material.MOSSY_COBBLESTONE_WALL);
+						break;
+					default:
+						break;
 					}
 				}
+				return ct;
 			}
-		}
+		});
 		StringBuilder sb = new StringBuilder();
 		sb.append("Done: ");sb.append(ct);sb.append(" blocks changed.");
 		c.msg(sb.toString());
 	}
-	
-	private int grow(World w,int x,int y,int z,Material newmat,int newdata) {
+
+	private int grow(World w,int x,int y,int z,Material newmat) {
 		int ct=0;
 		int n = rand.nextInt(15)+2;
 		// record original type!
@@ -200,7 +247,6 @@ public class Plugin extends JavaPlugin {
 			if(b.getType()==origm) {
 				ct++;
 				b.setType(newmat);
-				b.setData((byte)newdata);
 			}
 		}
 		return ct;
