@@ -1,5 +1,8 @@
 package org.pale.jcfutils;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
@@ -175,6 +178,22 @@ public class Plugin extends JavaPlugin {
 		b.append("LightSpawnLevel: "+lightSpawnLevel+"\n");
 		b.append("number of entities cancelled vs. attempted: "+spawnsCancelled+"/"+spawnsAttempted);
 		c.msg(b.toString());
+	}
+	
+	@Cmd(desc="output material enums to file",player=false,argc=0)
+	public void dumpmats(CallInfo c) {
+		BufferedWriter w;
+		try {
+			w = new BufferedWriter(new FileWriter("/tmp/mats"));
+			for(Material m: Material.values()) {
+				w.write(m.name());
+				w.newLine();
+			}
+			w.close();
+			c.msg("materials written to /tmp/mats");
+		} catch (IOException e) {
+			c.msg("Cannot open /tmp/mats");
+		}
 	}
 
 
