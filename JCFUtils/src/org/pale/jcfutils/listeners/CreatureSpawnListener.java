@@ -1,5 +1,6 @@
 package org.pale.jcfutils.listeners;
 
+import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
@@ -14,11 +15,14 @@ public class CreatureSpawnListener implements Listener {
 		switch(evt.getSpawnReason()){
 		case NATURAL:
 		case CHUNK_GEN:
-			lev = evt.getLocation().getBlock().getLightFromBlocks();
-			if(lev>Plugin.getLightSpawnLevel()){
-				Plugin.log("Creature spawn aborted due to light: "+evt.getEntityType().name());
-				evt.setCancelled(true);
-				Plugin.spawnsCancelled++;
+			// shulkers are fine.
+			if(evt.getEntityType() != EntityType.SHULKER) {
+				lev = evt.getLocation().getBlock().getLightFromBlocks();
+				if(lev>Plugin.getLightSpawnLevel()){
+					Plugin.log("Creature spawn aborted due to light: "+evt.getEntityType().name());
+					evt.setCancelled(true);
+					Plugin.spawnsCancelled++;
+				}
 			}
 			break;
 		default:break;
