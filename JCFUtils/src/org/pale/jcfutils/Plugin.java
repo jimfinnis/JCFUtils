@@ -3,6 +3,9 @@ package org.pale.jcfutils;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
@@ -13,12 +16,20 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.pale.jcfutils.Command.CallInfo;
 import org.pale.jcfutils.Command.Cmd;
 import org.pale.jcfutils.Command.Registry;
 import org.pale.jcfutils.listeners.CreatureSpawnListener;
+import org.pale.jcfutils.listeners.PlayerInteractListener;
 
 
 
@@ -112,7 +123,9 @@ public class Plugin extends JavaPlugin {
 		// register event listeners
 		PluginManager mgr = Bukkit.getPluginManager();
 		mgr.registerEvents(new CreatureSpawnListener(),this);
+		mgr.registerEvents(new PlayerInteractListener(),this);
 	}
+
 
 	public static void sendCmdMessage(CommandSender s,String msg){
 		s.sendMessage(ChatColor.AQUA+"[JCFUtils] "+ChatColor.YELLOW+msg);
@@ -251,6 +264,34 @@ public class Plugin extends JavaPlugin {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Done: ");sb.append(ct);sb.append(" blocks changed.");
 		c.msg(sb.toString());
+	}
+	
+	@Cmd(desc="create a stick which will locate the item held",player=true,argc=0)
+	public void dowse(CallInfo c) {
+		Player p = c.getPlayer();
+		PlayerInventory inv = p.getInventory();
+		ItemStack st = inv.getItemInMainHand();
+		if(st.getAmount()!=0) {
+			c.msg("Testing: it's a "+st.getType().name());
+			Material m = st.getType();
+			st = new ItemStack(Material.STICK);
+			ItemMeta meta = st.getItemMeta();
+			if(meta==null)c.msg("Meta is null");
+			List<String> lore = new ArrayList<String>();
+			// set the lore of the new stick to the name of the type we're looking for. Ugly.
+			lore.add("Magic Stick");
+			lore.add(m.name());
+			meta.setDisplayName("Magic Stick for "+m.name());
+			meta.setLore(lore);
+			st.setItemMeta(meta);
+    		HashMap<Integer,ItemStack> couldntStore = inv.addItem(st);
+
+    		// drop remaining items at the player
+    		for(ItemStack s: couldntStore.values()){
+    			p.getWorld().dropItem(p.getLocation(), s);
+    		}
+
+		}
 	}
 
 	private int grow(World w,int x,int y,int z,Material newmat) {
