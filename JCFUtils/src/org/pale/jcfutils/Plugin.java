@@ -29,6 +29,7 @@ import org.pale.jcfutils.Command.CallInfo;
 import org.pale.jcfutils.Command.Cmd;
 import org.pale.jcfutils.Command.Registry;
 import org.pale.jcfutils.listeners.CreatureSpawnListener;
+import org.pale.jcfutils.listeners.PlayerInteractEntityListener;
 import org.pale.jcfutils.listeners.PlayerInteractListener;
 
 
@@ -124,6 +125,7 @@ public class Plugin extends JavaPlugin {
 		PluginManager mgr = Bukkit.getPluginManager();
 		mgr.registerEvents(new CreatureSpawnListener(),this);
 		mgr.registerEvents(new PlayerInteractListener(),this);
+		mgr.registerEvents(new PlayerInteractEntityListener(),this);
 	}
 
 
@@ -293,7 +295,12 @@ public class Plugin extends JavaPlugin {
 
 		}
 	}
-
+	/*
+	@Cmd(desc="make the looked at painting change",player=true,argc=0)
+	public void changepainting(CallInfo c) {
+		Player p = c.getPlayer();
+	}
+	*/
 	private int grow(World w,int x,int y,int z,Material newmat) {
 		int ct=0;
 		int n = rand.nextInt(15)+2;
