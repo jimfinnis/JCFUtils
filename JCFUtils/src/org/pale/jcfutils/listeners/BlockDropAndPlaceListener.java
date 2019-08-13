@@ -8,9 +8,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.util.BoundingBox;
 import org.pale.jcfutils.Plugin;
 import org.pale.jcfutils.Plugin.RegionPlacingData;
-import org.pale.jcfutils.region.AABB;
 
 /**
  * Used to handle drops and placings for region selection.
@@ -36,15 +36,10 @@ public class BlockDropAndPlaceListener implements Listener {
 			d.placeCount++;
 			if(d.placeCount == 1) {
 				p.sendMessage("Now mark the second corner");
-				d.x1 =  loc.getBlockX();
-				d.y1 =  loc.getBlockY();
-				d.z1 =  loc.getBlockZ();
+				d.loc1 = loc.clone();
 			} else {
 				// get the AABB
-				int x2 =  loc.getBlockX();
-				int y2 =  loc.getBlockY();
-				int z2 =  loc.getBlockZ();
-				AABB aabb = new AABB(d.x1,d.y1,d.z1,x2,y2,z2);
+				BoundingBox aabb = BoundingBox.of(d.loc1,loc);
 				
 				p.sendMessage("Region created: "+aabb.toString());
 				// SNARK add region here

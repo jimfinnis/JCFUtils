@@ -75,6 +75,8 @@ so getRegion will return the linked region.
 Data for regions is stored in a yaml file (or some persistence model).
 It does not contain chunk data; regions are added to chunks on load.
 This implies that there must be a master list of all regions for saving.
+Actually not, because there's already a master: the map of IDs to
+regions.
 
 
 ## User operations        

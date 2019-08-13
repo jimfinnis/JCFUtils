@@ -53,7 +53,7 @@ public class Plugin extends JavaPlugin {
 		public Material m; // the material the player has indicated they will use
 		public int placeCount; // the number of times the player has placed (on 2, the region is placed and this structure is deleted.)
 		// first placed corner, which only means anything if placeCount>0 
-		public int x1,y1,z1;
+		public Location loc1;
 		RegionPlacingData(Material mat){
 			m = mat;
 			placeCount=0;
