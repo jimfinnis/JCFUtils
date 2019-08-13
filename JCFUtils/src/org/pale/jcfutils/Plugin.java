@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
@@ -24,10 +25,10 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.util.Vector;
 import org.pale.jcfutils.Command.CallInfo;
 import org.pale.jcfutils.Command.Cmd;
 import org.pale.jcfutils.Command.Registry;
+import org.pale.jcfutils.listeners.BlockDropAndPlaceListener;
 import org.pale.jcfutils.listeners.CreatureSpawnListener;
 import org.pale.jcfutils.listeners.PlayerInteractEntityListener;
 import org.pale.jcfutils.listeners.PlayerInteractListener;
@@ -46,6 +47,20 @@ public class Plugin extends JavaPlugin {
 	 */
 	static Plugin instance = null;
 	static Random rand = new Random();
+	
+	// data stored per player for placing/dropping blocks to delimit a region
+	public class RegionPlacingData {
+		public Material m; // the material the player has indicated they will use
+		public int placeCount; // the number of times the player has placed (on 2, the region is placed and this structure is deleted.)
+		// first placed corner, which only means anything if placeCount>0 
+		public int x1,y1,z1;
+		RegionPlacingData(Material mat){
+			m = mat;
+			placeCount=0;
+		}
+	}
+	
+	public static Map<Player,RegionPlacingData> regionPlacingData = new HashMap<Player,RegionPlacingData>();
 
 	private Registry commandRegistry=new Registry();
 
@@ -126,6 +141,7 @@ public class Plugin extends JavaPlugin {
 		mgr.registerEvents(new CreatureSpawnListener(),this);
 		mgr.registerEvents(new PlayerInteractListener(),this);
 		mgr.registerEvents(new PlayerInteractEntityListener(),this);
+		mgr.registerEvents(new BlockDropAndPlaceListener(),this);
 	}
 
 
@@ -274,7 +290,6 @@ public class Plugin extends JavaPlugin {
 		PlayerInventory inv = p.getInventory();
 		ItemStack st = inv.getItemInMainHand();
 		if(st.getAmount()!=0) {
-			c.msg("Testing: it's a "+st.getType().name());
 			Material m = st.getType();
 			st = new ItemStack(Material.STICK);
 			ItemMeta meta = st.getItemMeta();
@@ -295,6 +310,20 @@ public class Plugin extends JavaPlugin {
 
 		}
 	}
+	
+	@Cmd(desc="block in hand will delimit region AABB when dropped or placed",player=true,argc=0)
+	public void regcreate(CallInfo c) {
+		Player p = c.getPlayer();
+		PlayerInventory inv = p.getInventory();
+		ItemStack st = inv.getItemInMainHand();
+		if(st.getAmount()!=0) {
+			regionPlacingData.put(p,new RegionPlacingData(st.getType()));
+			c.msg("Creating region with the item in hand");
+		} else {
+			c.msg("You have to be holding the block type which will be used to mark the region");
+		}
+	}
+		
 	
 	@Cmd(desc="locate the nearest mob of given type",player=true,argc=1)
 	public void lookmob(CallInfo c){
@@ -340,5 +369,4 @@ public class Plugin extends JavaPlugin {
 		}
 		return ct;
 	}
-
 }
