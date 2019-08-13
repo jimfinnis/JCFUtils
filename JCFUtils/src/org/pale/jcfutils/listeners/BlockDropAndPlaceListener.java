@@ -50,6 +50,7 @@ public class BlockDropAndPlaceListener implements Listener {
 				BoundingBox aabb = BoundingBox.of(d.loc1,loc);
 				// create the region
 				Region r = RegionManager.getManager(loc.getWorld()).add(aabb);
+				RegionManager.setLastEdited(p, r);
 				p.sendMessage("Region created: ID "+Integer.toString(r.id));
 				p.sendMessage("AABB: "+aabb.toString());
 				// and delete the entry

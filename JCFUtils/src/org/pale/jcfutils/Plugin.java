@@ -34,6 +34,7 @@ import org.pale.jcfutils.listeners.BlockDropAndPlaceListener;
 import org.pale.jcfutils.listeners.CreatureSpawnListener;
 import org.pale.jcfutils.listeners.PlayerInteractEntityListener;
 import org.pale.jcfutils.listeners.PlayerInteractListener;
+import org.pale.jcfutils.listeners.PlayerMoveListener;
 import org.pale.jcfutils.region.Region;
 import org.pale.jcfutils.region.RegionManager;
 
@@ -151,6 +152,7 @@ public class Plugin extends JavaPlugin {
 		mgr.registerEvents(new PlayerInteractListener(),this);
 		mgr.registerEvents(new PlayerInteractEntityListener(),this);
 		mgr.registerEvents(new BlockDropAndPlaceListener(),this);
+		mgr.registerEvents(new PlayerMoveListener(),this);
 	}
 
 
@@ -333,15 +335,17 @@ public class Plugin extends JavaPlugin {
 		}
 	}
 	
-	@Cmd(desc="<id> <name..> rename a region in this world",player=true,argc=-1)
+	@Cmd(desc="<id|l(ast)> <name..> rename a region in this world",player=true,argc=-1)
 	public void regname(CallInfo c) {
 		RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
 		String[] args = c.getArgs();
 		if(args.length<2) {
-			c.msg("An ID and a some text must be provided");
+			c.msg("An ID (or l for last) and a some text must be provided");
 			return;
 		}
-		Region r = rm.get(Integer.parseInt(args[0]));
+		Region r;
+		if(args[0].equals("l"))r = RegionManager.getLastEdited(c.getPlayer());
+		else r = rm.get(Integer.parseInt(args[0]));
 		
 		if(r==null)
 			c.msg("Region unknown!");
@@ -354,32 +358,39 @@ public class Plugin extends JavaPlugin {
 			}
 			r.name = sb.toString();
 			c.msg("Region renamed to "+sb.toString());
+			RegionManager.setLastEdited(c.getPlayer(), r);
 		}
 	}
 
-	@Cmd(desc="delete a region in this world",player=true,argc=1)
+	@Cmd(desc="<id|l(ast)>delete a region in this world",player=true,argc=1)
 	public void regdel(CallInfo c)
 	{
 		RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
-		int id = Integer.parseInt(c.getArgs()[0]);
-		Region r = rm.get(id);
+		Region r;
+		String[] args = c.getArgs();
+		if(args[0].equals("l"))r = RegionManager.getLastEdited(c.getPlayer());
+		else r = rm.get(Integer.parseInt(args[0]));
 		if(r==null)
 			c.msg("Region unknown!");
 		else {
+			RegionManager.setLastEdited(c.getPlayer(), null); // imagine the comedy if I didn't do this.
 			rm.delete(r);
 			c.msg("Region deleted");
 		}		
 	}
 	
-	@Cmd(desc="extend the given region to include my location",player=true,argc=1)
+	@Cmd(desc="<id|l(ast)> extend the given region to include my location",player=true,argc=1)
 	public void regext(CallInfo c)
 	{
 		RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
-		int id = Integer.parseInt(c.getArgs()[0]);
-		Region r = rm.get(id);
+		Region r;
+		String[] args = c.getArgs();
+		if(args[0].equals("l"))r = RegionManager.getLastEdited(c.getPlayer());
+		else r = rm.get(Integer.parseInt(args[0]));
 		if(r==null)
 			c.msg("Region unknown!");
 		else {
+			RegionManager.setLastEdited(c.getPlayer(), r);
 			r.extend(c.getPlayer().getLocation());
 			c.msg("Region extended");
 		}		
