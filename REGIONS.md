@@ -81,12 +81,14 @@ regions.
 
 ## User operations        
     
-* adding a region by specifying two corners, perhaps by right-clicking on
-blocks or placing a special block? Requires some thought, this one.
+* adding a region by specifying two corners. This is done by using
+```regcreate``` and then dropping or placing the block you are holding,
+twice (the drop/place will be cancelled).
 * adding a link region to the region previously added (even if that was a link
-too)
+too). Probably a command? Don't know.
 * commands:
-** display the regions and their IDs
+** display current region and ID
+** display all regions and their IDs
 ** to change region name
 ** delete region
 ** remove link (and set name)
@@ -96,3 +98,14 @@ too)
 
 Not sure how to do this. We could use Bukkit's ```sendTitle```, or
 we could just send a chat message.
+
+
+## Implementation roadmap
+* Get regions working via the ```RegionManager``` class (one per world)
+just adding regions to the map and traversing them all to get a match (or
+using a subsidiary list).
+* Add the commands (except perhaps links)
+* UI elements (i.e. entering region display)
+* Persistence
+* Add the chunking
+

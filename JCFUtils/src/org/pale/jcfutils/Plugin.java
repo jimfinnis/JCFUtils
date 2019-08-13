@@ -17,6 +17,8 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -32,6 +34,8 @@ import org.pale.jcfutils.listeners.BlockDropAndPlaceListener;
 import org.pale.jcfutils.listeners.CreatureSpawnListener;
 import org.pale.jcfutils.listeners.PlayerInteractEntityListener;
 import org.pale.jcfutils.listeners.PlayerInteractListener;
+import org.pale.jcfutils.region.Region;
+import org.pale.jcfutils.region.RegionManager;
 
 
 
@@ -115,6 +119,7 @@ public class Plugin extends JavaPlugin {
 
 	@Override
 	public void onDisable() {
+		RegionManager.saveRegionData(); // do this before disabling, it needs to get the plugin.
 		instance = null;
 		getLogger().info("JCFUtils has been disabled");
 		saveConfig();
@@ -129,12 +134,16 @@ public class Plugin extends JavaPlugin {
 	@Override
 	public void onEnable() {
 		instance = this;
+		ConfigurationSerialization.registerClass(Region.class,"JCFRegion");
 		saveDefaultConfig();
 		commandRegistry.register(this); // register commands
 		getLogger().info("JCFUtils has been enabled");
 
-		// load config
+		// load config (not regions, that's done elsewhere)
 		loadConfigData();
+		
+		// NOW load the region data.
+		RegionManager.loadRegionData();
 
 		// register event listeners
 		PluginManager mgr = Bukkit.getPluginManager();
@@ -322,6 +331,85 @@ public class Plugin extends JavaPlugin {
 		} else {
 			c.msg("You have to be holding the block type which will be used to mark the region");
 		}
+	}
+	
+	@Cmd(desc="<id> <name..> rename a region in this world",player=true,argc=-1)
+	public void regname(CallInfo c) {
+		RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
+		String[] args = c.getArgs();
+		if(args.length<2) {
+			c.msg("An ID and a some text must be provided");
+			return;
+		}
+		Region r = rm.get(Integer.parseInt(args[0]));
+		
+		if(r==null)
+			c.msg("Region unknown!");
+		else {
+			StringBuilder sb = new StringBuilder();
+			int len = args.length;
+			for(int i=1;i<len;i++) {
+				sb.append(args[i]);
+				if(i!=len-1)sb.append(" ");
+			}
+			r.name = sb.toString();
+			c.msg("Region renamed to "+sb.toString());
+		}
+	}
+
+	@Cmd(desc="delete a region in this world",player=true,argc=1)
+	public void regdel(CallInfo c)
+	{
+		RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
+		int id = Integer.parseInt(c.getArgs()[0]);
+		Region r = rm.get(id);
+		if(r==null)
+			c.msg("Region unknown!");
+		else {
+			rm.delete(r);
+			c.msg("Region deleted");
+		}		
+	}
+	
+	@Cmd(desc="extend the given region to include my location",player=true,argc=1)
+	public void regext(CallInfo c)
+	{
+		RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
+		int id = Integer.parseInt(c.getArgs()[0]);
+		Region r = rm.get(id);
+		if(r==null)
+			c.msg("Region unknown!");
+		else {
+			r.extend(c.getPlayer().getLocation());
+			c.msg("Region extended");
+		}		
+		
+	}
+
+	@Cmd(desc="list all regions in this world",player=true,argc=0)
+	public void reglist(CallInfo c)
+	{
+		RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
+		List<Region> rl = rm.getAllRegions();
+		c.msg(String.format("Region list (%d entries)",rl.size()));
+		for(Region r: rm.getAllRegions()) {
+			c.msg(String.format("%2d: %s", r.id,r.name));
+		}
+	}
+	
+
+	@Cmd(desc="test command to save regions in this world",player=true,argc=0)
+	public void regsave(CallInfo c) {
+		RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
+		rm.saveConfig();
+		c.msg("regions saved OK (hopefully)");
+	}
+	
+	@Cmd(desc="test command to load regions in this world",player=true,argc=0)
+	public void regload(CallInfo c) {
+		RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
+		rm.loadConfig();
+		c.msg("regions loaded OK (hopefully)");
 	}
 		
 	

@@ -11,6 +11,8 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.util.BoundingBox;
 import org.pale.jcfutils.Plugin;
 import org.pale.jcfutils.Plugin.RegionPlacingData;
+import org.pale.jcfutils.region.Region;
+import org.pale.jcfutils.region.RegionManager;
 
 /**
  * Used to handle drops and placings for region selection.
@@ -38,13 +40,18 @@ public class BlockDropAndPlaceListener implements Listener {
 				p.sendMessage("Now mark the second corner");
 				d.loc1 = loc.clone();
 			} else {
+				// getting the second corner. Make sure it's in the same world!
+				if(d.loc1.getWorld() != loc.getWorld()) {
+					p.sendMessage("The two corners aren't in the same world - aborting!");
+					Plugin.regionPlacingData.remove(p);					
+					return true; // wrong, but still cancel the event
+				}
 				// get the AABB
 				BoundingBox aabb = BoundingBox.of(d.loc1,loc);
-				
-				p.sendMessage("Region created: "+aabb.toString());
-				// SNARK add region here
-				
 				// create the region
+				Region r = RegionManager.getManager(loc.getWorld()).add(aabb);
+				p.sendMessage("Region created: ID "+Integer.toString(r.id));
+				p.sendMessage("AABB: "+aabb.toString());
 				// and delete the entry
 				Plugin.regionPlacingData.remove(p);
 			}

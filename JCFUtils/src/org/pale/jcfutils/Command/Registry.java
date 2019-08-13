@@ -48,6 +48,7 @@ public class Registry {
 					c.msg("You do not have the permission "+permission);
 					return;
 				}
+				// -1 is "varargs"
 				if(cmd.argc()>=0 && c.getArgs().length!=cmd.argc()){
 					showHelp(c,c.getCmd());
 					return;
@@ -91,10 +92,12 @@ public class Registry {
 	 */
 	public void handleCommand(CommandSender sender,String[] args){
 		if(args.length == 0){
+			// if the user has just done /plugin, print all the subcommands.
 			String cmds="";
 			for(String cc: registry.keySet())cmds+=cc+" ";
 			Plugin.sendCmdMessage(sender,cmds);
 		} else {
+			// otherwise the first arg is the command name.
 			String cmdName = args[0];
 			if(!registry.containsKey(cmdName)){
 				Plugin.sendCmdMessage(sender,"unknown jcfutils command: "+cmdName);
