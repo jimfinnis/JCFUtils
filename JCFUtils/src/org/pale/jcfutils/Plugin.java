@@ -16,15 +16,15 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.Vector;
 import org.pale.jcfutils.Command.CallInfo;
 import org.pale.jcfutils.Command.Cmd;
 import org.pale.jcfutils.Command.Registry;
@@ -295,12 +295,34 @@ public class Plugin extends JavaPlugin {
 
 		}
 	}
-	/*
-	@Cmd(desc="make the looked at painting change",player=true,argc=0)
-	public void changepainting(CallInfo c) {
-		Player p = c.getPlayer();
+	
+	@Cmd(desc="locate the nearest mob of given type",player=true,argc=1)
+	public void lookmob(CallInfo c){
+		List<Entity> lst = c.getPlayer().getNearbyEntities(60, 60, 60);
+		EntityType t=null;
+		try {
+			t = EntityType.valueOf(c.getArgs()[0].toUpperCase());
+		} catch(IllegalArgumentException e) {
+			c.msg("No such entity type");return;
+		}
+		double dist=10000;
+		Entity f=null;
+		for(Entity e:lst) {
+			if(e.getType() == t) {
+				Location loc = e.getLocation();
+				double d = loc.distance(c.getPlayer().getLocation());
+				if(d<dist) {
+					dist=d;
+					f=e;
+				}
+			}
+		}
+		if(f!=null)
+			c.msg("Found one at "+(int)dist+" blocks away");
+		else
+			c.msg("Didn't find one!");
 	}
-	*/
+
 	private int grow(World w,int x,int y,int z,Material newmat) {
 		int ct=0;
 		int n = rand.nextInt(15)+2;
