@@ -32,4 +32,8 @@ public class CallInfo {
 	public void msg(String s){
 		Plugin.sendCmdMessage(sender,s);
 	}
+	public void msgAndLog(String s) {
+		Plugin.log(s);
+		Plugin.sendCmdMessage(sender,s);
+	}
 }

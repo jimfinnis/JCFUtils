@@ -20,7 +20,7 @@ import org.pale.jcfutils.region.RegionManager;
  *
  */
 public class BlockDropAndPlaceListener implements Listener {
-	
+
 	/**
 	 * Handle a block drop or place, for dealing with region creation after /jcf regcreate
 	 * @param p the player
@@ -48,28 +48,32 @@ public class BlockDropAndPlaceListener implements Listener {
 				}
 				// get the AABB
 				BoundingBox aabb = BoundingBox.of(d.loc1,loc);
-				// create the region
-				Region r = RegionManager.getManager(loc.getWorld()).add(aabb);
-				RegionManager.setLastEdited(p, r);
-				p.sendMessage("Region created: ID "+Integer.toString(r.id));
-				p.sendMessage("AABB: "+aabb.toString());
+				if(d.r == null) {
+					// create the region
+					Region r = RegionManager.getManager(loc.getWorld()).add(aabb);
+					RegionManager.setLastEdited(p, r);
+					p.sendMessage("Region created: ID "+Integer.toString(r.id));
+					p.sendMessage("AABB: "+aabb.toString());
+				} else {
+					RegionManager.getManager(loc.getWorld()).setRegBox(d.r,aabb);
+					RegionManager.setLastEdited(p, d.r);
+					p.sendMessage("Region modified: ID "+Integer.toString(d.r.id));
+					p.sendMessage("AABB: "+aabb.toString());
+				}
 				// and delete the entry
 				Plugin.regionPlacingData.remove(p);
 			}
 			return true; // cancel the event
-		} else {
-			p.sendMessage("Snark - some failure, mat="+m.toString());
-			p.sendMessage("  and nominated mat="+d.m.toString());
 		}
 		return false;
 	}
-	
+
 	@EventHandler 
 	public void drop(final PlayerDropItemEvent evt){
 		if(handle(evt.getPlayer(),evt.getItemDrop().getItemStack().getType(),evt.getPlayer().getLocation()))
 			evt.setCancelled(true);		
 	}
-	
+
 	@EventHandler
 	public void place(final BlockPlaceEvent evt) {
 		if(handle(evt.getPlayer(),evt.getBlockPlaced().getType(),evt.getBlockPlaced().getLocation())) {

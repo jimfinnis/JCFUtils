@@ -17,7 +17,6 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -52,19 +51,26 @@ public class Plugin extends JavaPlugin {
 	 */
 	static Plugin instance = null;
 	static Random rand = new Random();
-	
+
 	// data stored per player for placing/dropping blocks to delimit a region
 	public class RegionPlacingData {
 		public Material m; // the material the player has indicated they will use
 		public int placeCount; // the number of times the player has placed (on 2, the region is placed and this structure is deleted.)
 		// first placed corner, which only means anything if placeCount>0 
 		public Location loc1;
+		public Region r; // if we're re-bounding a region this will be set, for new regions it's null
 		RegionPlacingData(Material mat){
 			m = mat;
 			placeCount=0;
+			r = null;
+		}
+		RegionPlacingData(Material mat,Region r){
+			m = mat;
+			placeCount=0;
+			this.r =r; 
 		}
 	}
-	
+
 	public static Map<Player,RegionPlacingData> regionPlacingData = new HashMap<Player,RegionPlacingData>();
 
 	private Registry commandRegistry=new Registry();
@@ -142,7 +148,7 @@ public class Plugin extends JavaPlugin {
 
 		// load config (not regions, that's done elsewhere)
 		loadConfigData();
-		
+
 		// NOW load the region data.
 		RegionManager.loadRegionData();
 
@@ -221,7 +227,7 @@ public class Plugin extends JavaPlugin {
 		b.append("number of entities cancelled vs. attempted: "+spawnsCancelled+"/"+spawnsAttempted);
 		c.msg(b.toString());
 	}
-	
+
 	@Cmd(desc="output material enums to file",player=false,argc=0)
 	public void dumpmats(CallInfo c) {
 		BufferedWriter w;
@@ -294,7 +300,7 @@ public class Plugin extends JavaPlugin {
 		sb.append("Done: ");sb.append(ct);sb.append(" blocks changed.");
 		c.msg(sb.toString());
 	}
-	
+
 	@Cmd(desc="create a stick which will locate the item held",player=true,argc=0)
 	public void dowse(CallInfo c) {
 		Player p = c.getPlayer();
@@ -312,16 +318,16 @@ public class Plugin extends JavaPlugin {
 			meta.setDisplayName("Magic Stick for "+m.name());
 			meta.setLore(lore);
 			st.setItemMeta(meta);
-    		HashMap<Integer,ItemStack> couldntStore = inv.addItem(st);
+			HashMap<Integer,ItemStack> couldntStore = inv.addItem(st);
 
-    		// drop remaining items at the player
-    		for(ItemStack s: couldntStore.values()){
-    			p.getWorld().dropItem(p.getLocation(), s);
-    		}
+			// drop remaining items at the player
+			for(ItemStack s: couldntStore.values()){
+				p.getWorld().dropItem(p.getLocation(), s);
+			}
 
 		}
 	}
-	
+
 	@Cmd(desc="block in hand will delimit region AABB when dropped or placed",player=true,argc=0)
 	public void regcreate(CallInfo c) {
 		Player p = c.getPlayer();
@@ -334,7 +340,7 @@ public class Plugin extends JavaPlugin {
 			c.msg("You have to be holding the block type which will be used to mark the region");
 		}
 	}
-	
+
 	@Cmd(desc="<id|l(ast)> <name..> rename a region in this world",player=true,argc=-1)
 	public void regname(CallInfo c) {
 		RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
@@ -346,7 +352,7 @@ public class Plugin extends JavaPlugin {
 		Region r;
 		if(args[0].equals("l"))r = RegionManager.getLastEdited(c.getPlayer());
 		else r = rm.get(Integer.parseInt(args[0]));
-		
+
 		if(r==null)
 			c.msg("Region unknown!");
 		else {
@@ -361,6 +367,31 @@ public class Plugin extends JavaPlugin {
 			RegionManager.setLastEdited(c.getPlayer(), r);
 		}
 	}
+
+	@Cmd(desc="<id|l(ast)>rebound a region in this world",player=true,argc=1)
+	public void regmod(CallInfo c)
+	{
+		RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
+		Region r;
+		String[] args = c.getArgs();
+		if(args[0].equals("l"))r = RegionManager.getLastEdited(c.getPlayer());
+		else r = rm.get(Integer.parseInt(args[0]));
+		if(r==null) {
+			c.msg("Region unknown!");
+			return;
+		}
+		Player p = c.getPlayer();
+		PlayerInventory inv = p.getInventory();
+		ItemStack st = inv.getItemInMainHand();
+		if(st.getAmount()!=0) {
+			regionPlacingData.put(p,new RegionPlacingData(st.getType(),r));
+			c.msg("Creating region with the item in hand");
+		} else {
+			c.msg("You have to be holding the block type which will be used to mark the region");
+		}
+	}
+
+
 
 	@Cmd(desc="<id|l(ast)>delete a region in this world",player=true,argc=1)
 	public void regdel(CallInfo c)
@@ -378,7 +409,7 @@ public class Plugin extends JavaPlugin {
 			c.msg("Region deleted");
 		}		
 	}
-	
+
 	@Cmd(desc="<id|l(ast)> extend the given region to include my location",player=true,argc=1)
 	public void regext(CallInfo c)
 	{
@@ -391,23 +422,95 @@ public class Plugin extends JavaPlugin {
 			c.msg("Region unknown!");
 		else {
 			RegionManager.setLastEdited(c.getPlayer(), r);
-			r.extend(c.getPlayer().getLocation());
+			rm.extend(r,c.getPlayer().getLocation());
 			c.msg("Region extended");
 		}		
-		
 	}
 
-	@Cmd(desc="list all regions in this world",player=true,argc=0)
-	public void reglist(CallInfo c)
+	@Cmd(desc="<id|l(ast)> unlink a region from its parent",player=true,argc=1)
+	public void regunlink(CallInfo c)
 	{
 		RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
-		List<Region> rl = rm.getAllRegions();
-		c.msg(String.format("Region list (%d entries)",rl.size()));
-		for(Region r: rm.getAllRegions()) {
-			c.msg(String.format("%2d: %s", r.id,r.name));
+		Region r;
+		String[] args = c.getArgs();
+		if(args[0].equals("l"))r = RegionManager.getLastEdited(c.getPlayer());
+		else r = rm.get(Integer.parseInt(args[0]));
+		if(r==null)
+			c.msg("Region unknown!");
+		else {
+			RegionManager.setLastEdited(c.getPlayer(), r);
+			rm.unlink(r);
+			c.msg("Region unlinked");
+		}		
+	}
+
+	@Cmd(desc="<childid|l> <parentid> link region(s) to another region, making it a child of that region",player=true,argc=2)
+	public void reglink(CallInfo c) {
+		RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
+		Region rthis;
+		String[] args = c.getArgs();
+		if(args[0].equals("l"))rthis = RegionManager.getLastEdited(c.getPlayer());
+		else rthis = rm.get(Integer.parseInt(args[0]));
+		if(rthis==null)
+			c.msg("Region in first argument (child) unknown!");
+		else {
+			Region rparent = rm.get(Integer.parseInt(args[1]));
+			if(rparent==null){
+				c.msg("Region in second argument (parent) unknown!");
+			} else {
+				if(rparent == rthis) {
+					c.msg("You can't link a region to itself");
+					return;
+				}
+				if(rparent.link!=null) {
+					c.msg("You can't link a region to a region which is itself linked");
+					return;
+				}
+
+				RegionManager.setLastEdited(c.getPlayer(), rthis);
+				rm.link(rparent,rthis);
+				c.msg("Region linked");
+			}
+		}		
+
+	}
+
+	@Cmd(desc="show current region(s) the player is in",player=true,argc=0)
+	public void regshow(CallInfo c) {
+		RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
+		for(Region r: rm.getRegionList(c.getPlayer().getLocation())) {
+			c.msg(String.format("%d : %s [vol %f]: %s",r.id,r.name,r.getVolume(),r.getAABBString()));
 		}
 	}
-	
+
+	@Cmd(desc="list all regions in this world, if arg provided will match names",player=true,argc=-1)
+	public void reglist(CallInfo c)
+	{
+		String search=null;
+		String[] args = c.getArgs();
+		if(args.length>=1) {
+			StringBuilder sb = new StringBuilder();
+			int len = args.length;
+			for(int i=0;i<len;i++) {
+				sb.append(args[i]);
+				if(i!=len-1)sb.append(" ");
+			}
+			search = sb.toString();
+		}
+		Plugin.log(Integer.toString(args.length));
+		RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
+		List<Region> rl = rm.getAllRegions();
+		c.msgAndLog(String.format("Region list (%d entries) [search=%s]",rl.size(),search));
+		for(Region r: rm.getAllRegions()) {
+			if(search == null || r.name.contains(search)) {
+				if(r.link!=null)
+					c.msgAndLog(String.format("%2d: %s [link to %d:%s]", r.id,r.name,r.link.id,r.link.name));
+				else
+					c.msgAndLog(String.format("%2d: %s", r.id,r.name));
+			}
+		}
+	}
+
 
 	@Cmd(desc="test command to save regions in this world",player=true,argc=0)
 	public void regsave(CallInfo c) {
@@ -415,15 +518,15 @@ public class Plugin extends JavaPlugin {
 		rm.saveConfig();
 		c.msg("regions saved OK (hopefully)");
 	}
-	
+
 	@Cmd(desc="test command to load regions in this world",player=true,argc=0)
 	public void regload(CallInfo c) {
 		RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
 		rm.loadConfig();
 		c.msg("regions loaded OK (hopefully)");
 	}
-		
-	
+
+
 	@Cmd(desc="locate the nearest mob of given type",player=true,argc=1)
 	public void lookmob(CallInfo c){
 		List<Entity> lst = c.getPlayer().getNearbyEntities(60, 60, 60);
