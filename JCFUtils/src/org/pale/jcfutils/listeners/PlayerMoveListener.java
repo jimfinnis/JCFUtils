@@ -1,6 +1,7 @@
 package org.pale.jcfutils.listeners;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Location;
@@ -8,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.pale.jcfutils.Plugin;
 import org.pale.jcfutils.region.Region;
 import org.pale.jcfutils.region.RegionManager;
 
@@ -40,6 +42,17 @@ public class PlayerMoveListener implements Listener {
 			regionForPlayer.put(p, r);
 			// so display a funky title
 			p.sendTitle(r.name, "",10,70,20);
+		}
+		
+		// this may slow things down!
+		if(Plugin.getInstance().isRegDebugActive(p)) {
+			List<Region> lst = RegionManager.getManager(p.getWorld()).getRegionList(p.getLocation());
+			if(lst.size()>0) {
+				for(Region rr: lst) {
+					p.sendMessage(rr.toString());
+				}
+			} else
+				p.sendMessage("None");
 		}
 	}
 }

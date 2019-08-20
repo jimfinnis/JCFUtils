@@ -5,9 +5,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -423,7 +425,8 @@ public class Plugin extends JavaPlugin {
 		else {
 			RegionManager.setLastEdited(c.getPlayer(), r);
 			rm.extend(r,c.getPlayer().getLocation());
-			c.msg("Region extended");
+			c.msg("Region extended:");
+			showReg(c, r);
 		}		
 	}
 
@@ -475,11 +478,28 @@ public class Plugin extends JavaPlugin {
 
 	}
 
-	@Cmd(desc="show current region(s) the player is in",player=true,argc=0)
+	private void showReg(CallInfo c,Region r) {
+		if(r.link!=null) {
+			c.msg(String.format("%d [parent %d]: %s [vol %f]: %s",r.id,r.link.id,r.name,r.getVolume(),r.getAABBString()));				
+		} else {
+			c.msg(String.format("%d : %s [vol %f]: %s",r.id,r.name,r.getVolume(),r.getAABBString()));
+		}
+	}
+
+	@Cmd(desc="show current region(s) the player is in or another if an ID is given",player=true,argc=-1)
 	public void regshow(CallInfo c) {
 		RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
-		for(Region r: rm.getRegionList(c.getPlayer().getLocation())) {
-			c.msg(String.format("%d : %s [vol %f]: %s",r.id,r.name,r.getVolume(),r.getAABBString()));
+		if(c.getArgs().length > 0) {
+			Region r = rm.get(Integer.parseInt(c.getArgs()[0]));
+			if(r==null) {
+				c.msg("Unknown region ID");
+				return;
+			}
+			showReg(c,r);
+		} else {
+			for(Region r: rm.getRegionList(c.getPlayer().getLocation())) {
+				showReg(c,r);
+			}
 		}
 	}
 
@@ -509,6 +529,22 @@ public class Plugin extends JavaPlugin {
 					c.msgAndLog(String.format("%2d: %s", r.id,r.name));
 			}
 		}
+	}
+
+	private Set<Player> regDebugActivePlayers = new HashSet<Player>();
+	@Cmd(desc="toggle show regions on enter/exit",player=true,argc=0)
+	public void regdebug(CallInfo c) {
+		if(regDebugActivePlayers.contains(c.getPlayer())) {
+			regDebugActivePlayers.remove(c.getPlayer());
+			c.msg("Debug now inactive");
+		} else {
+			regDebugActivePlayers.add(c.getPlayer());
+			c.msg("Debug now active");
+		}
+	}
+
+	public boolean isRegDebugActive(Player p) {
+		return regDebugActivePlayers.contains(p);
 	}
 
 

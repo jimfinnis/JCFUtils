@@ -100,12 +100,13 @@ Not sure how to do this. We could use Bukkit's ```sendTitle```, or
 we could just send a chat message.
 
 
-## Implementation roadmap
-* Get regions working via the ```RegionManager``` class (one per world)
-just adding regions to the map and traversing them all to get a match (or
-using a subsidiary list).
-* Add the commands (except perhaps links)
-* UI elements (i.e. entering region display)
-* Persistence
-* Add the chunking
+## Todo
+* Ensure you can't delete regions to which other regions link
+* Chunking
+* Making "temporary" regions (for work in progress), and making
+them searchable. Could just do this with a "TEMP" marker, but this
+would be nicer.
+* Subnames and descriptions
+** subnames come up as subtitles on entry
+** descriptions come up as chat text on entry.
 

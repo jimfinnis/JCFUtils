@@ -7,6 +7,7 @@ import org.bukkit.Location;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.SerializableAs;
 import org.bukkit.util.BoundingBox;
+import org.pale.jcfutils.Plugin;
 
 @SerializableAs("JCFRegion")
 public class Region implements ConfigurationSerializable {
@@ -29,9 +30,7 @@ public class Region implements ConfigurationSerializable {
 		name = "Region "+Integer.toString(id);
 	}
 
-	public String getAABBString() {
-		return aabb.toString();
-	}
+
 	boolean contains(Location loc) {
 		// note the slight adjustment, to just above the player's feet.
 		return aabb.contains(loc.getX(),loc.getY()+0.1,loc.getZ());
@@ -45,8 +44,10 @@ public class Region implements ConfigurationSerializable {
 	// add linked volume to my volume, and subtract the intersection.
 	void addLinkedVolume(Region r) {
 		volume += r.myVolume;
-		if(aabb.overlaps(r.aabb))
-			volume -= aabb.intersection(r.aabb).getVolume();
+		if(aabb.overlaps(r.aabb)) {
+			BoundingBox inter = aabb.clone(); // intersection modifies the object, and we don't want that!
+			volume -= inter.intersection(r.aabb).getVolume();
+		}
 	}
 
 	///////////////////////// SERIALIZATION /////////////////////////////
@@ -75,7 +76,10 @@ public class Region implements ConfigurationSerializable {
 
 	// increases the AABB bounds to include this point. Only call from RM.
 	void extend(Location loc) {
-		aabb = aabb.union(loc);
+		Plugin.log("Extending from "+aabb.toString());
+		Plugin.log("Including location "+loc.toString());
+		aabb.union(loc);
+		Plugin.log("AABB is now "+aabb.toString());
 		myVolume = aabb.getVolume(); // fixVolumes and rebuildChunks must be run!
 	}
 
@@ -83,6 +87,21 @@ public class Region implements ConfigurationSerializable {
 	void setAABB(BoundingBox aabb2) {
 		aabb = aabb2;
 		myVolume = aabb.getVolume(); // fixVolumes and rebuildChunks must be run!
+	}
+	
+	public String getAABBString() {
+		return String.format("X(%d,%d), Y(%d,%d), Z(%d,%d)", 
+				(int)(aabb.getMinX()),(int)(aabb.getMaxX()),
+				(int)(aabb.getMinY()),(int)(aabb.getMaxY()),
+				(int)(aabb.getMinZ()),(int)(aabb.getMaxZ()));
+	}
+	
+	@Override
+	public String toString() {
+		if(link!=null)
+			return String.format("%d [parent %d]: %s [%s]", id,link.id,name,getAABBString());
+		else
+			return String.format("%d: %s [%s]", id,name,getAABBString());
 	}
 	
 }
