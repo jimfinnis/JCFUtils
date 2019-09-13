@@ -10,8 +10,8 @@ import java.lang.annotation.Target;
 
 public @interface Cmd {
 	String name() default "";
-	String desc() default "";
-	String usage() default "";
+	String desc();
+	String usage();
 	String permission() default "";
 	int argc() default -1; // means "varargs"
 	boolean player() default false; // requires a player

@@ -214,14 +214,14 @@ public class Plugin extends JavaPlugin {
 		}
 	}
 
-	@Cmd(desc="set block light level above which mobs won't spawn",player=false,argc=1)
+	@Cmd(desc="set block light level above which mobs won't spawn",usage="<level>",player=false,argc=1)
 	public void light(CallInfo c){
 		lightSpawnLevel = Integer.parseInt(c.getArgs()[0]);
 		getConfig().set("lightspawnlevel",lightSpawnLevel);
 		saveConfig();
 	}
 
-	@Cmd(desc="show information and config stuff",player=true,argc=0)
+	@Cmd(desc="show information and config stuff",usage="",player=true,argc=0)
 	public void info(CallInfo c){
 		StringBuilder b = new StringBuilder();
 		b.append(ChatColor.AQUA+"JCFUtils info: \n"+ChatColor.GREEN);
@@ -230,7 +230,7 @@ public class Plugin extends JavaPlugin {
 		c.msg(b.toString());
 	}
 
-	@Cmd(desc="output material enums to file",player=false,argc=0)
+	@Cmd(desc="output material enums to file",usage="",player=false,argc=0)
 	public void dumpmats(CallInfo c) {
 		BufferedWriter w;
 		try {
@@ -248,7 +248,7 @@ public class Plugin extends JavaPlugin {
 
 
 
-	@Cmd(desc="remove vines locally",player=true,argc=1)
+	@Cmd(desc="remove vines locally",usage="<distance>",player=true,argc=1)
 	public void devine(CallInfo c){
 		int distance = Integer.parseInt(c.getArgs()[0]);
 		c.msg("de-vining");
@@ -265,7 +265,7 @@ public class Plugin extends JavaPlugin {
 			}});
 	}
 
-	@Cmd(desc="cover some stone with moss and cracks",player=true,argc=1)
+	@Cmd(desc="cover some stone with moss and cracks",usage="<distance>",player=true,argc=1)
 	public void rot(CallInfo c) {
 		int distance = Integer.parseInt(c.getArgs()[0]);
 		c.msg("Rotting.");
@@ -303,7 +303,7 @@ public class Plugin extends JavaPlugin {
 		c.msg(sb.toString());
 	}
 
-	@Cmd(desc="create a stick which will locate the item held",player=true,argc=0)
+	@Cmd(desc="create a stick which will locate the item held",usage="",player=true,argc=0)
 	public void dowse(CallInfo c) {
 		Player p = c.getPlayer();
 		PlayerInventory inv = p.getInventory();
@@ -330,7 +330,7 @@ public class Plugin extends JavaPlugin {
 		}
 	}
 
-	@Cmd(desc="block in hand will delimit region AABB when dropped or placed",player=true,argc=0)
+	@Cmd(desc="block in hand will delimit region AABB when dropped or placed",usage="",player=true,argc=0)
 	public void regcreate(CallInfo c) {
 		Player p = c.getPlayer();
 		PlayerInventory inv = p.getInventory();
@@ -343,7 +343,7 @@ public class Plugin extends JavaPlugin {
 		}
 	}
 
-	@Cmd(desc="<id|l(ast)> <name..> rename a region in this world",player=true,argc=-1)
+	@Cmd(desc="rename a region in this world",usage="<id|l(ast)> <name..>",player=true,argc=-1)
 	public void regname(CallInfo c) {
 		RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
 		String[] args = c.getArgs();
@@ -370,7 +370,7 @@ public class Plugin extends JavaPlugin {
 		}
 	}
 
-	@Cmd(desc="<id|l(ast)>rebound a region in this world",player=true,argc=1)
+	@Cmd(desc="re-bound a region in this world",usage="<id|l(ast)>",player=true,argc=1)
 	public void regmod(CallInfo c)
 	{
 		RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
@@ -395,7 +395,7 @@ public class Plugin extends JavaPlugin {
 
 
 
-	@Cmd(desc="<id|l(ast)>delete a region in this world",player=true,argc=1)
+	@Cmd(desc="delete a region in this world",usage="<id|l(ast)>",player=true,argc=1)
 	public void regdel(CallInfo c)
 	{
 		RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
@@ -412,7 +412,7 @@ public class Plugin extends JavaPlugin {
 		}		
 	}
 
-	@Cmd(desc="<id|l(ast)> extend the given region to include my location",player=true,argc=1)
+	@Cmd(desc="extend the given region to include my location",usage="<id|l(ast)>",player=true,argc=1)
 	public void regext(CallInfo c)
 	{
 		RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
@@ -430,7 +430,7 @@ public class Plugin extends JavaPlugin {
 		}		
 	}
 
-	@Cmd(desc="<id|l(ast)> unlink a region from its parent",player=true,argc=1)
+	@Cmd(desc="unlink a region from its parent",usage="<id|l(ast)>",player=true,argc=1)
 	public void regunlink(CallInfo c)
 	{
 		RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
@@ -447,7 +447,7 @@ public class Plugin extends JavaPlugin {
 		}		
 	}
 
-	@Cmd(desc="<childid|l> <parentid> link region(s) to another region, making it a child of that region",player=true,argc=2)
+	@Cmd(desc="link region(s) to another region, making it a child of that region",usage="<childid|l> <parentid>",player=true,argc=2)
 	public void reglink(CallInfo c) {
 		RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
 		Region rthis;
@@ -486,7 +486,7 @@ public class Plugin extends JavaPlugin {
 		}
 	}
 
-	@Cmd(desc="show current region(s) the player is in or another if an ID is given",player=true,argc=-1)
+	@Cmd(desc="show current region(s) the player is in or another if an ID is given",usage="",player=true,argc=-1)
 	public void regshow(CallInfo c) {
 		RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
 		if(c.getArgs().length > 0) {
@@ -503,7 +503,7 @@ public class Plugin extends JavaPlugin {
 		}
 	}
 
-	@Cmd(desc="list all regions in this world, if arg provided will match names",player=true,argc=-1)
+	@Cmd(desc="list all regions in this world, if arg provided will match names",usage="",player=true,argc=-1)
 	public void reglist(CallInfo c)
 	{
 		String search=null;
@@ -532,7 +532,7 @@ public class Plugin extends JavaPlugin {
 	}
 
 	private Set<Player> regDebugActivePlayers = new HashSet<Player>();
-	@Cmd(desc="toggle show regions on enter/exit",player=true,argc=0)
+	@Cmd(desc="toggle show regions on enter/exit",usage="",player=true,argc=0)
 	public void regdebug(CallInfo c) {
 		if(regDebugActivePlayers.contains(c.getPlayer())) {
 			regDebugActivePlayers.remove(c.getPlayer());
@@ -548,14 +548,14 @@ public class Plugin extends JavaPlugin {
 	}
 
 
-	@Cmd(desc="test command to save regions in this world",player=true,argc=0)
+	@Cmd(desc="test command to save regions in this world",usage="",player=true,argc=0)
 	public void regsave(CallInfo c) {
 		RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
 		rm.saveConfig();
 		c.msg("regions saved OK (hopefully)");
 	}
 
-	@Cmd(desc="test command to load regions in this world",player=true,argc=0)
+	@Cmd(desc="test command to load regions in this world",usage="",player=true,argc=0)
 	public void regload(CallInfo c) {
 		RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
 		rm.loadConfig();
@@ -563,9 +563,9 @@ public class Plugin extends JavaPlugin {
 	}
 
 
-	@Cmd(desc="locate the nearest mob of given type",player=true,argc=1)
-	public void lookmob(CallInfo c){
-		List<Entity> lst = c.getPlayer().getNearbyEntities(60, 60, 60);
+	@Cmd(desc="go to the nearest mob of given type (within 1000 blocks)",usage="<mobtype>",player=true,argc=1)
+	public void gomob(CallInfo c){
+		List<Entity> lst = c.getPlayer().getNearbyEntities(1000,1000,1000);
 		EntityType t=null;
 		try {
 			t = EntityType.valueOf(c.getArgs()[0].toUpperCase());
@@ -584,12 +584,48 @@ public class Plugin extends JavaPlugin {
 				}
 			}
 		}
-		if(f!=null)
+		if(f!=null) {
 			c.msg("Found one at "+(int)dist+" blocks away");
-		else
+			c.getPlayer().teleport(f);
+		} else
 			c.msg("Didn't find one!");
 	}
-
+	
+	@Cmd(desc="count mobiles within a given range",usage="<mobtype> <distance>",player=true,argc=2)
+	public void countmobs(CallInfo c)
+	{
+		EntityType t=null;
+		try {
+			t = EntityType.valueOf(c.getArgs()[0].toUpperCase());
+		} catch(IllegalArgumentException e) {
+			c.msg("No such entity type");return;
+		}
+		int range = Integer.parseInt(c.getArgs()[1]);
+		List<Entity> lst = c.getPlayer().getNearbyEntities(range,range,range);
+		double dist=10000;
+		int ct=0;
+		Entity f=null;
+		for(Entity e:lst) {
+			if(e.getType() == t) {
+				ct++;
+				Location loc = e.getLocation();
+				double d = loc.distance(c.getPlayer().getLocation());
+				if(d<dist) {
+					dist=d;
+					f=e;
+				}
+			}
+		}
+		if(f!=null)
+			c.msg("Found "+ct+", nearest at "+(int)dist+" blocks away");
+		else
+			c.msg("Didn't find any!");
+		
+	}
+	
+	
+	
+	
 	private int grow(World w,int x,int y,int z,Material newmat) {
 		int ct=0;
 		int n = rand.nextInt(15)+2;
