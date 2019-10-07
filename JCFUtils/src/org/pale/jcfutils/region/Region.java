@@ -15,7 +15,6 @@ public class Region implements ConfigurationSerializable {
 	private BoundingBox aabb; // region bounding box - keep private to avoid vol recalc being skipped
 	public int id;
 	public String name;
-	double size;
 	public Region link; // this part gets generated from linkID
 	public int linkID=0; // this part gets saved 
 	private double volume; // accessible only via a getter from outside - is volume of me + all things linked to me! See fixVolumes in RegionManager

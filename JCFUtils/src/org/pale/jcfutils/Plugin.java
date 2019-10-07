@@ -623,6 +623,50 @@ public class Plugin extends JavaPlugin {
 		
 	}
 	
+	private Map<Player,Entity> selectedMobMap = new HashMap<Player,Entity>();
+	
+	@Cmd(desc="select a mobile for moving",usage="",player=true,argc=0)
+	public void selmob(CallInfo c) {
+		Player p = c.getPlayer();
+		List<Entity> lst = p.getNearbyEntities(20,20,20);
+		for(Entity e:lst) {
+			if(p.hasLineOfSight(e)) {
+				for(Block b: p.getLineOfSight(null,100)) {
+					if(e.getLocation().distance(b.getLocation())<3) {
+						selectedMobMap.put(p,e);
+						c.msg("Selected "+e.getName());
+						return;						
+					}
+				}
+			}
+		}
+		c.msg("No mobs in line of sight!");
+	}
+	
+	@Cmd(desc="teleport selected mob to the block player is looking at",usage="",player=true,argc=0)
+	public void telmob(CallInfo c) {
+		Player p = c.getPlayer();
+		Entity e = selectedMobMap.get(p);
+		if(e==null)
+			c.msg("no entity selected");
+		else {
+			List<Block> lst = p.getLastTwoTargetBlocks(null, 100);
+			Block b;
+			if(lst==null) {
+				c.msg("no blocks in line of sight");
+				return;
+			}
+			else if(lst.size()<2)
+				b=lst.get(0);
+			else
+				b=lst.get(1);
+			Location loc = b.getLocation();
+			loc.setY(loc.getY()+1.1);
+			e.teleport(loc);
+		}
+	}
+	
+	
 	
 	
 	
