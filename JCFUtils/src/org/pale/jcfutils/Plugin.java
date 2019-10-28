@@ -17,6 +17,9 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.Fence;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
@@ -682,7 +685,21 @@ public class Plugin extends JavaPlugin {
 			Block b = w.getBlockAt(x,y,z); 
 			if(b.getType()==origm) {
 				ct++;
-				b.setType(newmat);
+				// this is to make sure we don't modify the block data for walls; the same faces need
+				// to be enabled. When we do setType it completely resets the block data which contains
+				// this info. So..
+				BlockData bd = b.getBlockData(); // get the current block data
+				if(bd!=null && bd instanceof Fence) { // if it's for a fence
+					Fence of = (Fence)bd;              // get hold of it as a fence
+					Fence f = (Fence)newmat.createBlockData(); // and make a fresh Fence block data with the new type
+					for(BlockFace face: of.getFaces()) {
+						f.setFace(face, true); // set the enabled faces in this new one to the same as the old
+					}
+					f.setWaterlogged(of.isWaterlogged()); // ditto the waterlogged data
+					b.setBlockData(f); // and set the block to have the new block data (and material type)
+				} else {
+					b.setType(newmat);					
+				}
 			}
 		}
 		return ct;
