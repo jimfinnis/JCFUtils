@@ -1,11 +1,14 @@
 package org.pale.jcfutils.listeners;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -18,30 +21,131 @@ import org.bukkit.util.Vector;
 
 
 public class PlayerInteractListener implements Listener {
+
+	enum StickType {
+		DOWSING,MOBMOVER
+	}
+
+	class StickData {
+		StickData(StickType t,Material m){
+			this.t = t;
+			this.m = m;
+		}
+		StickType t;
+		Material m;
+	}
+
+	StickData getMagicStickData(Player p) {
+		ItemStack st = p.getInventory().getItemInMainHand();
+		ItemMeta meta = st.getItemMeta();
+		StickData d = null;
+		List<String> lore = meta.getLore();
+		if(lore != null && lore.size()>1) {
+			String name = lore.get(0);
+			if(lore.size()>1 && name.equals("Magic Stick")) {
+				d = new StickData(StickType.DOWSING,Material.getMaterial(lore.get(1))); 
+			} else if(name.equals("Mob Mover Stick")) {
+				d = new StickData(StickType.MOBMOVER,null);
+			}
+		}
+		return d;
+	}
+
 	@EventHandler
 	public void onPlayerInteract(PlayerInteractEvent e) {
 		Player p = e.getPlayer();
-		if(e.getAction()==Action.RIGHT_CLICK_BLOCK && e.getHand().equals(EquipmentSlot.HAND)) {
-			ItemStack st = p.getInventory().getItemInMainHand();
-			ItemMeta meta = st.getItemMeta();
-			List<String> lore = meta.getLore();
-			if(lore != null && lore.size()>1) {
-				p.sendMessage("snark 1 size="+Integer.toString(lore.size()));
-				if(lore.get(0).equals("Magic Stick")){
-					Material m = Material.getMaterial(lore.get(1));
-					scan(p,m);
+
+		Action act = e.getAction();
+		boolean inHand = e.getHand().equals(EquipmentSlot.HAND);
+		if((act==Action.RIGHT_CLICK_AIR || act==Action.RIGHT_CLICK_BLOCK) && inHand) {
+			StickData d = getMagicStickData(p);
+			if(d!=null) {
+				switch(d.t) {
+				case DOWSING:
+					dowsingScan(p,d.m);
 					e.setCancelled(true);
+					break;
+				case MOBMOVER:
+					mobMover(p);
+					e.setCancelled(true);
+					break;
+				default:break;
+
+				}
+			} 
+		}
+		// left click actions
+		if((act==Action.LEFT_CLICK_AIR || act==Action.LEFT_CLICK_AIR) && inHand) {
+			StickData d = getMagicStickData(p);
+			if(d!=null) {
+				switch(d.t) {
+				case MOBMOVER:
+					mobMoverClear(p);
+					e.setCancelled(true);
+					break;
+				default:break;
 				}
 			}
 		}
-	}	
+	}
+
+	private Map<Player,Entity> selectedMobMap = new HashMap<Player,Entity>();
+
+	private boolean lookForMobSelect(Player p) {
+		List<Entity> lst = p.getNearbyEntities(20,20,20);
+		for(Entity e:lst) {
+			if(p.hasLineOfSight(e)) {
+				for(Block b: p.getLineOfSight(null,100)) {
+					if(e.getLocation().distance(b.getLocation())<1) {
+						selectedMobMap.put(p,e);
+						p.sendMessage("Selected "+e.getName());
+						return true;						
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	private void moveMob(Player p, Entity mob) {
+		List<Block> lst = p.getLastTwoTargetBlocks(null, 100);
+		Block b;
+		if(lst==null) {
+			p.sendMessage("no blocks in line of sight");
+			return;
+		}
+		else if(lst.size()<2)
+			b=lst.get(0);
+		else
+			b=lst.get(1);
+		Location loc = b.getLocation();
+		loc.setY(loc.getY()+1.1);
+		mob.teleport(loc);
+	}
+
+	private void mobMover(Player p) {
+		if(!lookForMobSelect(p)) {
+			// no mob found on line of sight, see if we have one to move.
+			if(selectedMobMap.containsKey(p)) {
+				moveMob(p,selectedMobMap.get(p));
+			} else {
+				p.sendMessage("No mob on light of sight, and don't have one selected");
+			}
+		}
+	}
+	
+	private void mobMoverClear(Player p) {
+		selectedMobMap.remove(p);
+		p.sendMessage("Mob mover selection cleared");
+	}
+
 
 	static final int DIST_NEAR=10;
 	static final int DIST_MID=20;
 	static final int DIST_FAR=60;
 	static final double ANGLE=45 * (Math.PI/180.0);
 
-	private void scan(Player p,Material m) {
+	private void dowsingScan(Player p,Material m) {
 		Location l = p.getLocation();
 		int x = l.getBlockX();
 		int y = l.getBlockY();
@@ -72,16 +176,16 @@ public class PlayerInteractListener implements Listener {
 						if(dist<DIST_NEAR)ctnear++;
 
 						// in view?
-								if(dist<DIST_MID) {
-									Vector v = new Vector(xoffset,yoffset,zoffset);
-									double ang = v.angle(lineOfSight);
-									//							p.sendMessage("Angle "+Double.toString(ang));
-									if(v.angle(lineOfSight)<ANGLE){
-										ctsight++;
-										if(dist<DIST_NEAR)
-											ctsightnear++;
-									}
-								}
+						if(dist<DIST_MID) {
+							Vector v = new Vector(xoffset,yoffset,zoffset);
+							double ang = v.angle(lineOfSight);
+							//							p.sendMessage("Angle "+Double.toString(ang));
+							if(v.angle(lineOfSight)<ANGLE){
+								ctsight++;
+								if(dist<DIST_NEAR)
+									ctsightnear++;
+							}
+						}
 					}
 				}
 			}

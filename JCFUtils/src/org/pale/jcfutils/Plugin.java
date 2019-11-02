@@ -332,6 +332,33 @@ public class Plugin extends JavaPlugin {
 
 		}
 	}
+	
+	@Cmd(desc="create a stick which will move mobs",usage="",player=true,argc=0)
+	public void mobmover(CallInfo c) {
+		Player p = c.getPlayer();
+		PlayerInventory inv = p.getInventory();
+		ItemStack st = inv.getItemInMainHand();
+		if(st.getAmount()!=0) {
+			Material m = st.getType();
+			st = new ItemStack(Material.STICK);
+			ItemMeta meta = st.getItemMeta();
+			if(meta==null)c.msg("Meta is null");
+			List<String> lore = new ArrayList<String>();
+			// set the lore of the new stick to the name of the type we're looking for. Ugly.
+			lore.add("Mob Mover Stick");
+			lore.add(m.name());
+			meta.setDisplayName("Mob Mover Stick");
+			meta.setLore(lore);
+			st.setItemMeta(meta);
+			HashMap<Integer,ItemStack> couldntStore = inv.addItem(st);
+
+			// drop remaining items at the player
+			for(ItemStack s: couldntStore.values()){
+				p.getWorld().dropItem(p.getLocation(), s);
+			}
+
+		}
+	}
 
 	@Cmd(desc="block in hand will delimit region AABB when dropped or placed",usage="",player=true,argc=0)
 	public void regcreate(CallInfo c) {
