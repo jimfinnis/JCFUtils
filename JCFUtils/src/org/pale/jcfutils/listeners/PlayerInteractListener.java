@@ -38,9 +38,11 @@ public class PlayerInteractListener implements Listener {
 	StickData getMagicStickData(Player p) {
 		ItemStack st = p.getInventory().getItemInMainHand();
 		ItemMeta meta = st.getItemMeta();
+		if(meta==null)return null;
 		StickData d = null;
 		List<String> lore = meta.getLore();
-		if(lore != null && lore.size()>1) {
+		if(lore==null)return null;
+		if(lore.size()>1) {
 			String name = lore.get(0);
 			if(lore.size()>1 && name.equals("Magic Stick")) {
 				d = new StickData(StickType.DOWSING,Material.getMaterial(lore.get(1))); 
