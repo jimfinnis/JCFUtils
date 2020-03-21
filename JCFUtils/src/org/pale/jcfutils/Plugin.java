@@ -34,11 +34,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.pale.jcfutils.Command.CallInfo;
 import org.pale.jcfutils.Command.Cmd;
 import org.pale.jcfutils.Command.Registry;
-import org.pale.jcfutils.listeners.BlockDropAndPlaceListener;
-import org.pale.jcfutils.listeners.CreatureSpawnListener;
-import org.pale.jcfutils.listeners.PlayerInteractEntityListener;
-import org.pale.jcfutils.listeners.PlayerInteractListener;
-import org.pale.jcfutils.listeners.PlayerMoveListener;
+import org.pale.jcfutils.listeners.*;
 import org.pale.jcfutils.region.Region;
 import org.pale.jcfutils.region.RegionManager;
 
@@ -132,6 +128,7 @@ public class Plugin extends JavaPlugin {
 	@Override
 	public void onDisable() {
 		RegionManager.saveRegionData(); // do this before disabling, it needs to get the plugin.
+		playerLog.save();
 		instance = null;
 		getLogger().info("JCFUtils has been disabled");
 		saveConfig();
@@ -142,6 +139,8 @@ public class Plugin extends JavaPlugin {
 		if(instance!=null)
 			throw new RuntimeException("oi! only one instance!");
 	}
+
+	PlayerLog playerLog = new PlayerLog();
 
 	@Override
 	public void onEnable() {
@@ -154,6 +153,8 @@ public class Plugin extends JavaPlugin {
 		// load config (not regions, that's done elsewhere)
 		loadConfigData();
 
+		playerLog.load();
+
 		// NOW load the region data.
 		RegionManager.loadRegionData();
 
@@ -164,6 +165,7 @@ public class Plugin extends JavaPlugin {
 		mgr.registerEvents(new PlayerInteractEntityListener(),this);
 		mgr.registerEvents(new BlockDropAndPlaceListener(),this);
 		mgr.registerEvents(new PlayerMoveListener(),this);
+		mgr.registerEvents(new PlayerJoinListener(playerLog),this);
 	}
 
 
@@ -527,7 +529,8 @@ public class Plugin extends JavaPlugin {
 			}
 			showReg(c,r);
 		} else {
-			for(Region r: rm.getRegionList(c.getPlayer().getLocation())) {
+			c.msg("You are in these regions:");
+			for(Region r: rm.getRegionList(c.getPlayer().getLocation(),true)) {
 				showReg(c,r);
 			}
 		}
@@ -695,9 +698,24 @@ public class Plugin extends JavaPlugin {
 			e.teleport(loc);
 		}
 	}
-	
-	
-	
+
+	@Cmd(desc="Show player log",usage="",player=false,argc=0)
+	public void showlog(CallInfo c){
+		for(String s:playerLog){
+			c.msg(s);
+		}
+	}
+
+	@Cmd(desc="Flush player log",usage="",player=false,argc=0)
+	public void flushlog(CallInfo c){
+		playerLog.save();
+	}
+
+	@Cmd(desc="Clear player log",usage="",player=false,argc=0)
+	public void clearlog(CallInfo c){
+		playerLog.clear();
+	}
+
 	
 	
 	private int grow(World w,int x,int y,int z,Material newmat) {

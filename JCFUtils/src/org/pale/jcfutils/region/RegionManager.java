@@ -103,7 +103,7 @@ public class RegionManager {
 	public Region getSmallestRegion(Location loc) {
 		double vol=-1;
 		Region found=null;
-		for(Region r: getRegionSet(loc)) {
+		for(Region r: getRegionSet(loc,false)) {
 			if(vol<0 || r.getVolume() < vol) {
 				vol = r.getVolume();
 				found = r;
@@ -113,8 +113,8 @@ public class RegionManager {
 	}
 	
 	// get regions containing this location
-	public List<Region> getRegionList(Location loc) {
-		List<Region>list = new ArrayList<Region>(getRegionSet(loc));
+	public List<Region> getRegionList(Location loc, boolean ignoreLinks) {
+		List<Region>list = new ArrayList<Region>(getRegionSet(loc,ignoreLinks));
 		list.sort(new Comparator<Region>() {
 			@Override
 			public int compare(Region o1, Region o2) {
@@ -133,11 +133,11 @@ public class RegionManager {
 
 	// this gets the set of all regions which have that location.
 	// TODO make this use chunks!
-	public Set<Region> getRegionSet(Location loc){
+	public Set<Region> getRegionSet(Location loc,boolean ignoreLinks){
 		Set<Region> set = new HashSet<Region>();
 		for(Region r: regMap.values()){
 			if(r.contains(loc)) {
-				if(r.link!=null)
+				if(r.link!=null && !ignoreLinks)
 					set.add(r.link);
 				else
 					set.add(r);

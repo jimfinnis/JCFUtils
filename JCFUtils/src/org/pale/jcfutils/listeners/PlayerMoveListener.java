@@ -46,7 +46,7 @@ public class PlayerMoveListener implements Listener {
 		
 		// this may slow things down!
 		if(Plugin.getInstance().isRegDebugActive(p)) {
-			List<Region> lst = RegionManager.getManager(p.getWorld()).getRegionList(p.getLocation());
+			List<Region> lst = RegionManager.getManager(p.getWorld()).getRegionList(p.getLocation(),false);
 			if(lst.size()>0) {
 				for(Region rr: lst) {
 					p.sendMessage(rr.toString());
