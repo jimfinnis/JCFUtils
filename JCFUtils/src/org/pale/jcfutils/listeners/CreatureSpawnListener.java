@@ -14,12 +14,11 @@ public class CreatureSpawnListener implements Listener {
 		Plugin.spawnsAttempted++;
 		switch(evt.getSpawnReason()){
 		case NATURAL:
-		case CHUNK_GEN:
 			// shulkers are fine.
 			if(evt.getEntityType() != EntityType.SHULKER) {
 				lev = evt.getLocation().getBlock().getLightFromBlocks();
 				if(lev>Plugin.getLightSpawnLevel()){
-					Plugin.log("Creature spawn aborted due to light: "+evt.getEntityType().name());
+					// Plugin.log("Creature spawn aborted due to light: "+evt.getEntityType().name());
 					evt.setCancelled(true);
 					Plugin.spawnsCancelled++;
 				}

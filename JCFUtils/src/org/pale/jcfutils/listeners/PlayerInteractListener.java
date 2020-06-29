@@ -58,6 +58,9 @@ public class PlayerInteractListener implements Listener {
 		Player p = e.getPlayer();
 
 		Action act = e.getAction();
+		if(e.getHand()==null) // in the case of Action.PHYSICAL
+			return;
+
 		boolean inHand = e.getHand().equals(EquipmentSlot.HAND);
 		if((act==Action.RIGHT_CLICK_AIR || act==Action.RIGHT_CLICK_BLOCK) && inHand) {
 			StickData d = getMagicStickData(p);
