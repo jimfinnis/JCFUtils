@@ -332,8 +332,8 @@ public class Plugin extends JavaPlugin {
                   meta.setDisplayName("Magic Stick for "+m.name());
                   meta.setLore(lore);
                   st.setItemMeta(meta);
-                  HashMap<Integer,ItemStack> couldntStore = inv.addItem(st);
                   
+                  HashMap<Integer,ItemStack> couldntStore = inv.addItem(st);
                   // drop remaining items at the player
                   for(ItemStack s: couldntStore.values()){
                       p.getWorld().dropItem(p.getLocation(), s);
@@ -345,27 +345,41 @@ public class Plugin extends JavaPlugin {
     @Cmd(desc="create a stick which will move mobs",usage="",player=true,argc=0)
           public void mobmover(CallInfo c) {
               Player p = c.getPlayer();
+              ItemStack st = new ItemStack(Material.STICK);
+              ItemMeta meta = st.getItemMeta();
+              if(meta==null)c.msg("Meta is null");
+              List<String> lore = new ArrayList<String>();
+              // set the lore of the new stick to the name of the type we're looking for. Ugly.
+              lore.add("Mob Mover Stick");
+              meta.setDisplayName("Mob Mover Stick");
+              meta.setLore(lore);
+              st.setItemMeta(meta);
+              
               PlayerInventory inv = p.getInventory();
-              ItemStack st = inv.getItemInMainHand();
-              if(st.getAmount()!=0) {
-                  Material m = st.getType();
-                  st = new ItemStack(Material.STICK);
-                  ItemMeta meta = st.getItemMeta();
-                  if(meta==null)c.msg("Meta is null");
-                  List<String> lore = new ArrayList<String>();
-                  // set the lore of the new stick to the name of the type we're looking for. Ugly.
-                  lore.add("Mob Mover Stick");
-                  lore.add(m.name());
-                  meta.setDisplayName("Mob Mover Stick");
-                  meta.setLore(lore);
-                  st.setItemMeta(meta);
-                  HashMap<Integer,ItemStack> couldntStore = inv.addItem(st);
-                  
-                  // drop remaining items at the player
-                  for(ItemStack s: couldntStore.values()){
-                      p.getWorld().dropItem(p.getLocation(), s);
-                  }
-                  
+              HashMap<Integer,ItemStack> couldntStore = inv.addItem(st);
+              // drop remaining items at the player
+              for(ItemStack s: couldntStore.values()){
+                  p.getWorld().dropItem(p.getLocation(), s);
+              }
+          }
+    
+    @Cmd(desc="create a lantern which remove leaves on right-click",usage="",player=true,argc=0)
+          public void leafblower(CallInfo c) {
+              Player p = c.getPlayer();
+              ItemStack st = new ItemStack(Material.SOUL_LANTERN);
+              ItemMeta meta = st.getItemMeta();
+              if(meta==null)c.msg("Meta is null");
+              List<String> lore = new ArrayList<String>();
+              lore.add("Leafblower");
+              meta.setDisplayName("Leafblower Lantern");
+              meta.setLore(lore);
+              st.setItemMeta(meta);
+              
+              PlayerInventory inv = p.getInventory();
+              HashMap<Integer,ItemStack> couldntStore = inv.addItem(st);
+              // drop remaining items at the player
+              for(ItemStack s: couldntStore.values()){
+                  p.getWorld().dropItem(p.getLocation(), s);
               }
           }
     

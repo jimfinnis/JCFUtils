@@ -5,7 +5,7 @@
   <groupId>org.pale</groupId>
   <artifactId>jcfutils</artifactId>
   <packaging>jar</packaging>
-  <version>0.1.2</version>
+  <version>1.1.1</version>
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
@@ -26,7 +26,10 @@
     <dependency>
       <groupId>org.spigotmc</groupId>
       <artifactId>spigot-api</artifactId>
-      <version>1.16.1-R0.1-SNAPSHOT</version>
+      <!--
+          <version>1.16.1-R0.1-SNAPSHOT</version>
+      -->
+      <version>1.18.2-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <!--plugins we need to link against, in the server's plugins dir -->
@@ -49,7 +52,9 @@
         <artifactId>maven-jar-plugin</artifactId>
         <version>2.3.1</version>
         <configuration>
-          <outputDirectory>${server.plugindir}</outputDirectory>
+          <!--
+              <outputDirectory>${server.plugindir}</outputDirectory>
+              -->
         </configuration>
       </plugin>
     </plugins>
