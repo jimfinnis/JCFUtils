@@ -465,6 +465,35 @@ public class Plugin extends JavaPlugin {
         }		
     }
     
+    @Cmd(desc="set or show a region description (used by Gemini NPC)", usage="<id|l(ast)> <desc...>",player=true,argc=-1)
+          public void regdesc(CallInfo c)
+    {
+        RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
+        String[] args = c.getArgs();
+        Region r;
+        if(args[0].equals("l"))r = RegionManager.getLastEdited(c.getPlayer());
+        else r = rm.get(Integer.parseInt(args[0]));
+        if(r==null){
+            c.msg("Region unknown!");
+            return;
+        }
+        if(args.length<2) {
+            c.msg("Description: "+r.desc);
+            return;
+        }
+              
+        StringBuilder sb = new StringBuilder();
+        int len = args.length;
+        for(int i=1;i<len;i++) {
+            sb.append(args[i]);
+            if(i!=len-1)sb.append(" ");
+        }
+        r.desc = sb.toString();
+        c.msg("Region desc set");
+        RegionManager.setLastEdited(c.getPlayer(), r);
+    }
+        
+    
     @Cmd(desc="extend the given region to include my location",usage="<id|l(ast)>",player=true,argc=1)
           public void regext(CallInfo c)
     {
@@ -599,6 +628,9 @@ public class Plugin extends JavaPlugin {
                         c.msgAndLog(String.format("%2d: %s [link to %d:%s]", r.id,r.name,r.link.id,r.link.name));
                     else
                         c.msgAndLog(String.format("%2d: %s", r.id,r.name));
+                    if(!r.desc.isEmpty()){
+                        c.msgAndLog("  "+r.desc);
+                    }
                 }
                 n++;
             }

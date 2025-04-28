@@ -14,7 +14,7 @@ public class Region implements ConfigurationSerializable {
 	// REMEMBER TO ADD PERSISTENT DATA ITEMS TO THE SERIALIZE/DESERIALIZE STUFF
 	private BoundingBox aabb; // region bounding box - keep private to avoid vol recalc being skipped
 	public int id;
-	public String name;
+	public String name,desc;
 	public Region link; // this part gets generated from linkID
 	public int linkID=0; // this part gets saved 
 	private double volume; // accessible only via a getter from outside - is volume of me + all things linked to me! See fixVolumes in RegionManager
@@ -23,10 +23,11 @@ public class Region implements ConfigurationSerializable {
 	
 	// note - keep package-private, so that it must be created through RegionManager
 	Region(BoundingBox _aabb,int _id){
-		aabb = _aabb;
-		volume = aabb.getVolume();
-		id = _id;
-		name = "Region "+Integer.toString(id);
+            aabb = _aabb;
+            volume = aabb.getVolume();
+            id = _id;
+            name = "Region "+Integer.toString(id);
+            desc = "";
 	}
 
 
@@ -53,23 +54,30 @@ public class Region implements ConfigurationSerializable {
 	
 	@Override
 	public Map<String, Object> serialize() {
-		Map<String,Object> m = new HashMap<String,Object>();
-		m.put("aabb", aabb);
-		m.put("name", name);
-		m.put("id", id);
-		m.put("linkID",linkID);
-		return m;
+            Map<String,Object> m = new HashMap<String,Object>();
+            m.put("aabb", aabb);
+            m.put("name", name);
+            m.put("desc",desc);
+            m.put("id", id);
+            m.put("linkID",linkID);
+            return m;
 	}
 	// deserialization ctor
 	public Region(Map<String,Object> m) {
-		aabb = (BoundingBox)m.get("aabb");
-		myVolume = aabb.getVolume();
-		name = (String)m.get("name");
-		id = (int)m.get("id");
-		if(m.containsKey("linkID"))
-			linkID = (int)m.get("linkID");
-		else
-			linkID = 0;
+            aabb = (BoundingBox)m.get("aabb");
+            myVolume = aabb.getVolume();
+            name = (String)m.get("name");
+            if(m.containsKey("desc")){
+                desc = (String)m.get("desc");
+            } else {
+                desc = "";
+            }
+            
+            id = (int)m.get("id");
+            if(m.containsKey("linkID"))
+                linkID = (int)m.get("linkID");
+            else
+                linkID = 0;
 	}
 
 
