@@ -205,6 +205,7 @@ public class Plugin extends JavaPlugin {
      */
     public static int spawnsAttempted;
     public static int spawnsCancelled;
+        
     
     /*
      * Commands
@@ -233,7 +234,7 @@ public class Plugin extends JavaPlugin {
               saveConfig();
           }
     
-    @Cmd(desc="show information and config stuff",usage="",player=true,argc=0)
+    @Cmd(desc="show information and config stuff",usage="",argc=0)
           public void info(CallInfo c){
               StringBuilder b = new StringBuilder();
               b.append(ChatColor.AQUA+"JCFUtils info: \n"+ChatColor.GREEN);
@@ -396,9 +397,9 @@ public class Plugin extends JavaPlugin {
               }
           }
     
-    @Cmd(desc="rename a region in this world",usage="<id|l(ast)> <name..>",player=true,argc=-1)
+    @Cmd(desc="rename a region in this world",usage="<id|l(ast)> <name..>",argc=-1)
           public void regname(CallInfo c) {
-              RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
+              RegionManager rm = RegionManager.getManager(c.getWorld());
               String[] args = c.getArgs();
               if(args.length<2) {
                   c.msg("An ID (or l for last) and a some text must be provided");
@@ -426,7 +427,7 @@ public class Plugin extends JavaPlugin {
     @Cmd(desc="re-bound a region in this world",usage="<id|l(ast)>",player=true,argc=1)
           public void regmod(CallInfo c)
     {
-        RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
+        RegionManager rm = RegionManager.getManager(c.getWorld());
         Region r;
         String[] args = c.getArgs();
         if(args[0].equals("l"))r = RegionManager.getLastEdited(c.getPlayer());
@@ -448,10 +449,10 @@ public class Plugin extends JavaPlugin {
     
     
     
-    @Cmd(desc="delete a region in this world",usage="<id|l(ast)>",player=true,argc=1)
+    @Cmd(desc="delete a region in this world",usage="<id|l(ast)>",argc=1)
           public void regdel(CallInfo c)
     {
-        RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
+        RegionManager rm = RegionManager.getManager(c.getWorld());
         Region r;
         String[] args = c.getArgs();
         if(args[0].equals("l"))r = RegionManager.getLastEdited(c.getPlayer());
@@ -465,10 +466,10 @@ public class Plugin extends JavaPlugin {
         }		
     }
     
-    @Cmd(desc="set or show a region description (used by Gemini NPC)", usage="<id|l(ast)> <desc...>",player=true,argc=-1)
+    @Cmd(desc="set or show a region description (used by Gemini NPC)", usage="<id|l(ast)> <desc...>",argc=-1)
           public void regdesc(CallInfo c)
     {
-        RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
+        RegionManager rm = RegionManager.getManager(c.getWorld());
         String[] args = c.getArgs();
         Region r;
         if(args[0].equals("l"))r = RegionManager.getLastEdited(c.getPlayer());
@@ -494,10 +495,10 @@ public class Plugin extends JavaPlugin {
     }
         
     
-    @Cmd(desc="extend the given region to include my location",usage="<id|l(ast)>",player=true,argc=1)
+    @Cmd(desc="extend the given region to include my location",usage="<id|l(ast)>",argc=1)
           public void regext(CallInfo c)
     {
-        RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
+        RegionManager rm = RegionManager.getManager(c.getWorld());
         Region r;
         String[] args = c.getArgs();
         if(args[0].equals("l"))r = RegionManager.getLastEdited(c.getPlayer());
@@ -512,10 +513,10 @@ public class Plugin extends JavaPlugin {
         }		
     }
     
-    @Cmd(desc="unlink a region from its parent",usage="<id|l(ast)>",player=true,argc=1)
+    @Cmd(desc="unlink a region from its parent",usage="<id|l(ast)>",argc=1)
           public void regunlink(CallInfo c)
     {
-        RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
+        RegionManager rm = RegionManager.getManager(c.getWorld());
         Region r;
         String[] args = c.getArgs();
         if(args[0].equals("l"))r = RegionManager.getLastEdited(c.getPlayer());
@@ -529,9 +530,9 @@ public class Plugin extends JavaPlugin {
         }		
     }
     
-    @Cmd(desc="link region(s) to another region, making it a child of that region",usage="<childid|l> <parentid>",player=true,argc=2)
+    @Cmd(desc="link region(s) to another region, making it a child of that region",usage="<childid|l> <parentid>",argc=2)
           public void reglink(CallInfo c) {
-              RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
+              RegionManager rm = RegionManager.getManager(c.getWorld());
               Region rthis;
               String[] args = c.getArgs();
               if(args[0].equals("l"))rthis = RegionManager.getLastEdited(c.getPlayer());
@@ -570,7 +571,7 @@ public class Plugin extends JavaPlugin {
     
     @Cmd(desc="show current region(s) the player is in or another if an ID is given",usage="",player=true,argc=-1)
           public void regshow(CallInfo c) {
-              RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
+              RegionManager rm = RegionManager.getManager(c.getWorld());
               if(c.getArgs().length > 0) {
                   Region r = rm.get(Integer.parseInt(c.getArgs()[0]));
                   if(r==null) {
@@ -607,7 +608,7 @@ public class Plugin extends JavaPlugin {
             }
         }
         Plugin.log(Integer.toString(args.length));
-        RegionManager rm = RegionManager.getManager(c.getPlayer()!=null ? c.getPlayer().getWorld() : Bukkit.getServer().getWorld("world"));
+        RegionManager rm = RegionManager.getManager(c.getPlayer()!=null ? c.getWorld() : Bukkit.getServer().getWorld("world"));
         List<Region> rl = rm.getAllRegions();
         c.msgAndLog(String.format("Region list (%d entries) [search=%s]",rl.size(),search));
         
@@ -654,16 +655,16 @@ public class Plugin extends JavaPlugin {
     }
     
     
-    @Cmd(desc="test command to save regions in this world",usage="",player=true,argc=0)
+    @Cmd(desc="test command to save regions in this world",usage="",argc=0)
           public void regsave(CallInfo c) {
-              RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
+              RegionManager rm = RegionManager.getManager(c.getWorld());
               rm.saveConfig();
               c.msg("regions saved OK (hopefully)");
           }
     
-    @Cmd(desc="test command to load regions in this world",usage="",player=true,argc=0)
+    @Cmd(desc="test command to load regions in this world",usage="",argc=0)
           public void regload(CallInfo c) {
-              RegionManager rm = RegionManager.getManager(c.getPlayer().getWorld());
+              RegionManager rm = RegionManager.getManager(c.getWorld());
               rm.loadConfig();
               c.msg("regions loaded OK (hopefully)");
           }
